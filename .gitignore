@@ -1,0 +1,23 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.venv
+venv/
+env/
+
+# --- Databases ---
+# We ignore the local data folder because Docker manages it
+data/
+*.sqlite3
+
+# --- Environment Variables ---
+.env
+
+# --- IDEs ---
+.vscode/
+.idea/
+
+# --- Docker ---
+.dockerignore
