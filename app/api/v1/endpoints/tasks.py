@@ -45,7 +45,6 @@ def create_task(task:dict = Body(...)):
     return {"msg": "Task created successfully"}
 
 @router.put("/{task_id}")
-
 def update_task(task_id: int,data:dict = Body(...)):
     for task in TASKS:
         if task["id"] == task_id:
@@ -57,8 +56,12 @@ def update_task(task_id: int,data:dict = Body(...)):
     raise HTTPException(status_code=404, detail="Task not found")    
 
 
-
+@router.delete("/{task_id}")
 def delete_task(task_id: int):
-    return {"msg": f"Task {task_id} deleted successfully"}
+    for task in TASKS:
+        if task["id"] == task_id:
+            TASKS.remove(task)
+            return {"msg": f"Task {task_id} deleted successfully"}
+    raise HTTPException(status_code=404, detail="Task not found")
 
 
