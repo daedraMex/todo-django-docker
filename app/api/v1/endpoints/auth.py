@@ -34,12 +34,36 @@ def register(
         obj_in=user_in,
         hashed_password=hashed_password,
     )
+@router.post("/login", response_model=auth_schemas.TokenResponse)
+def login(
+    db: Session = Depends(get_db),
+    form_data: OAuth2PasswordRequestForm = Depends(),
+) -> Any:
+    user = user_repository.get_by_email(db, email=form_data.username)
+
+    if not user or not security.verify_password(form_data.password, user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    access_token_expires = timedelta(minutes=security.settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    token = security.create_access_token(
+        subject=user.id, expires_delta=access_token_expires
+    )
+    return {
+        "access_token": token,
+        "token_type": "bearer",
+        "user": user
+    }
+
 @router.post("/login/access-token", response_model=auth_schemas.TokenResponse)
 def login_access_token(
     db: Session = Depends(get_db),
     form_data: OAuth2PasswordRequestForm = Depends(),
 ) -> Any:
-  user = user_repository.get_by_email(db, email=form_data.email)
+  user = user_repository.get_by_email(db, email=form_data.username)
 
   if not user or not security.verify_password(form_data.password, user.hashed_password):
        raise HTTPException(
@@ -47,7 +71,7 @@ def login_access_token(
             detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
        )
-  
+
   access_token_expires = timedelta(minutes=security.settings.ACCESS_TOKEN_EXPIRE_MINUTES)
   token = security.create_access_token(
             subject=user.id, expires_delta=access_token_expires
