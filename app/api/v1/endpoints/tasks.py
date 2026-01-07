@@ -1,13 +1,14 @@
-from fastapi import APIRouter,Query,Body, HTTPException
+from fastapi import APIRouter,Query,Body, HTTPException,Path
 from app.schemas import task as task_schemas
-
+from typing import List
 router = APIRouter()
 
 TASKS = [
-    {"id": 1, "title": "Task 1", "completed": False},
-    {"id": 2, "title": "Task 2", "completed": True},
+    {"id": 1, "title": "Task 1", "description": "Description for Task 1", "is_completed": False},
+    {"id": 2, "title": "Task 2", "description": "Description for Task 2", "is_completed": True},
 ]
-@router.get("/")
+
+@router.get("/", response_model=List[task_schemas.TaskResponse])
 def get_tasks(query: str | None= Query(default = None,description="Search query for task title")):
     if query:
       filtered_tasks = []
@@ -15,9 +16,9 @@ def get_tasks(query: str | None= Query(default = None,description="Search query 
          if query.lower() in task["title"].lower():
             filtered_tasks.append(task)
         
-      return {"data": filtered_tasks, "query": query}
+      return  filtered_tasks
     
-    return {"data": TASKS}
+    return TASKS
 
 
 @router.post("/")
@@ -26,16 +27,22 @@ def create_task( task: task_schemas.TaskCreate):
   
     return {"msg": "Task created successfully"}
 
-@router.put("/{task_id}")
-def update_task(task_id: int,data: task_schemas.TaskUpdate ):
+@router.put("/{task_id}", response_model = task_schemas.TaskResponse, response_description="The updated task")
+def update_task(task_id: int=Path(
+    ...,
+    ge=1,
+    title="Task ID",
+    description="The ID of the task to update",
+    example=1
+), data: task_schemas.TaskUpdate=Body(...)):
     for task in TASKS:
         if task["id"] == task_id:
             if "title" in data:task["title"] = data["title"]
             if "description" in data:task["description"] = data["description"]
             if "priority" in data:task["priority"] = data["priority"]
-            if "completed" in data:task["completed"] = data["completed"]
-            return {"msg": f"Task {task_id} updated successfully"}
-    raise HTTPException(status_code=404, detail="Task not found")    
+            if "is_completed" in data:task["is_completed"] = data["is_completed"]
+            return task
+    return HTTPException(status_code=404, detail="Task not found")    
 
 
 @router.delete("/{task_id}")
