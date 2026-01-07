@@ -1,3 +1,4 @@
+from math import ceil
 from fastapi import APIRouter,Query,Body, HTTPException,Path
 from app.schemas import task as task_schemas
 from typing import List,Optional, Literal
@@ -16,27 +17,25 @@ TASKS = [
     {"id": 10, "title": "Task 10", "description": "Description for Task 10", "is_completed": True},
 ]
 
-@router.get("/", response_model=List[task_schemas.PagintedTaskResponse])
+@router.get("/", response_model=task_schemas.PagintedTaskResponse)
 def get_tasks(query: Optional[str] = Query(
     default = None,
     description="Search query for task title",
     alias="query",
     min_length=3,
     max_length=50,
-    regex="^[a-zA-Z]+$",
+    pattern="^[a-zA-Z]+$",
     ),
-    limit : int = Query(
+    per_page : int = Query(
         6,
         ge=1,
         le=50,
         description="Maximum number of tasks to return by page"
     ),
-    offset : int = Query(
-        0,
-        ge=0,
-        le=1000,
-        description="Number of tasks to skip for pagination" 
-    ), 
+    page: int = Query(
+        1, ge=1,
+        description="Número de página (>=1)"
+    ),
     order_by: Literal["id"]  = Query(
         "id",
         description="Field to order tasks by"
@@ -47,33 +46,34 @@ def get_tasks(query: Optional[str] = Query(
     ):
     filtered_data = TASKS
     if query:
-        filtered_data = [t for t in TASKS if query.lower() in t["title"].lower()]
+        filtered_data = [t for t in TASKS if query.lower() in t["id"].lower()]
     
     is_reverse = (direction == "desc")
-
     sorted_data = sorted(
         filtered_data, 
         key=lambda x: x[order_by], 
         reverse=is_reverse
     )
     
-    results = sorted_data[offset : offset + limit]
-    total = len(filtered_data)
+    total = len(sorted_data)
+    total_pages = ceil(total / per_page) if total > 0 else 0
+    current_page = min(page, total_pages) if total_pages > 0 else 1
     
-    return task_schemas.PagintedTaskResponse(
-        page=(offset // limit) + 1,
-        per_page=limit,
+    start = (current_page - 1) * per_page
+    items = sorted_data[start : start + per_page] 
 
-        total=total,
-        total_pages=(total + limit - 1) // limit,
-        has_prev=offset > 0,
-        has_next=offset + limit < total,
-        order_by=order_by,
-        direction=direction,
-        query=query,
-        tasks=results
-    )
-
+    return {
+        "page": current_page,
+        "per_page": per_page,
+        "total": total,
+        "total_pages": total_pages,
+        "has_prev": current_page > 1,
+        "has_next": current_page < total_pages,
+        "order_by": "id",
+        "direction": "desc",
+        "query": query,
+        "tasks": items  # USAR 'items', NO 'results'
+    }
 
 @router.post("/")
 def create_task( task: task_schemas.TaskCreate):
