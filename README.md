@@ -24,7 +24,8 @@ last update: 06- jan- 2026
 
 - main: production code
 - dev: development code
-
+## Docs
+- [Architecture Overview](docs/architecture.md)
 ## 🚀 Getting Started
 
 1. Environment Configuration
@@ -42,7 +43,6 @@ Then, open the `.env` file and set the appropriate values for each variable acco
 | DB_USER | Your database username | postgres |
 | DB_PASSWORD | Your database password | your_password |
 | DB_NAME | The name of the project database | task_db |
-| DJANGO_SECRET_KEY | Secret key for session tokens | long_random_string |
 | PORT | Local server port | 3000 |
 
 1. If is your first tme running the app
@@ -67,6 +67,7 @@ and log in using the following credentials:
 
 - Email: (find in your .env file)
 - Password: (find in your .env file)
+
 
 ## seed
 
