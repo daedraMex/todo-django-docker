@@ -59,6 +59,14 @@ docker compose up -d
 
 You can then visit <http://localhost:8000> to see your FastAPI welcome message.
 
+## seed
+Once the application is running, you can seed the database with initial data by executing the following command:
+The seed endpoint will populate the database with sample users and tasks to help you get started quickly.
+
+```bash
+ curl -X POST http://localhost:8000/api/v1/utils/seed \
+    -H "Content-Type: application/json"
+```
 
 ## pgAdmin
 
@@ -67,14 +75,6 @@ and log in using the following credentials:
 
 - Email: (find in your .env file)
 - Password: (find in your .env file)
-
-
-## seed
-
-```bash
- curl -X POST http://localhost:8000/api/v1/utils/seed \
-    -H "Content-Type: application/json"
-```
 
 ## get - tasks
 
